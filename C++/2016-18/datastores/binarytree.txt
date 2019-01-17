@@ -1,0 +1,47 @@
+Tree parameters: key, left, right, parent
+
+
+TreeSearch(x,k)
+{
+  if x = nil OR k=key(x)
+    then return x
+
+  if k < key[x]
+    then return(TreeSearch(left(x), k))
+    else return(TreeSearch(right(X), k))
+}
+
+TreeMinimum(x)
+{
+  While left(x) != NIL
+    {x = left(x)}
+  return x
+}
+
+TreeSuccessor(x)
+{
+ if right[x] != NIL
+   then return TreeMinimum(right(x))
+ y <- p(x)
+
+ while y!=NIL AND x=right(y)
+  do x<-y
+    y<-parent(y)
+
+  return y
+}
+
+TreeInsert(Tree, input)
+  y <- NIL
+  x <- root(T)
+  while x != NIL
+    do y <- x
+      if(key(input) < key(x))
+        then x <- left(x)
+        else x <- right(x)
+  p(input) <- y
+  if y = NIL
+    then root(Tree) <- input
+    else if(key(z) < key(y))
+      then left(y) <- z
+      else right(y) <- z

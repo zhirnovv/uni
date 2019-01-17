@@ -1,0 +1,3 @@
+/Users/zhirnovv/Google Drive/School/Coding/C++/3420961/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/Users/zhirnovv/Google Drive/School/Coding/C++/3420961/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/zhirnovv/Google Drive/School/Coding/C++/3420961/cmake-build-debug/CMakeFiles/3420961.dir
