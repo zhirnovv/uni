@@ -1,46 +1,48 @@
 import math
 
-DELTA = 1e-6
+EPSILON = 1e-6
 
 
-def sqrt(number, delta=DELTA):  # 10^-6 by default
+def sqrt(number, epsilon=EPSILON):  # 10^-6 by default
     previousValue = 1.0
     currentValue = 0.5 * (number + 1)
-    while abs(currentValue - previousValue) > delta:
+    while abs(currentValue - previousValue) > epsilon:
         previousValue = currentValue
         currentValue = 0.5 * (currentValue + number / currentValue)
     return currentValue
 
 
-def sinh(rad, delta=DELTA):
+def sinh(rad, epsilon=EPSILON):
     def term(x, k):
         return (x ** (2*k + 1))/(math.factorial(2*k + 1))
 
     result = 0.0
     k = 0
     currentTerm = term(rad, k)
-    while (abs(currentTerm)/3 > delta):
+    while (abs(currentTerm) > 3 * epsilon):  # multiplying the divider is more efficient
         result += currentTerm
         k += 1
         currentTerm = term(rad, k)
     return result
 
 
-def cosh(rad, delta=DELTA):
+def cosh(rad, epsilon=EPSILON):
     def term(x, k):
         return (x ** (2*k))/(math.factorial(2*k))
 
-    result = 0.0
     k = 0
     currentTerm = term(rad, k)
-    while (2 * abs(currentTerm) / 3 > delta):
-        result += currentTerm
+    result = currentTerm
+
+    while (abs(currentTerm) > 1.5 * epsilon):
         k += 1
         currentTerm = term(rad, k)
+        result += currentTerm
+
     return result
 
 
-def arctg(rad, delta=DELTA):
+def arctg(rad, epsilon=EPSILON):
     def sign(x): return (1, -1)[x < 0]
 
     def lower_term(x, k):
@@ -55,14 +57,14 @@ def arctg(rad, delta=DELTA):
 
     if (abs(rad) < 1):
         currentTerm = lower_term(rad, k)
-        while(currentTerm > delta):
+        while(currentTerm > epsilon):
             result += currentTerm
             k += 1
             currentTerm = lower_term(rad, k)
     else:
-        result = math.pi * sign(rad) / 2
+        result = math.pi * sign(rad) * 0.5
         currentTerm = greater_term(rad, k)
-        while(abs(currentTerm) > delta):
+        while(abs(currentTerm) > epsilon):
             result -= currentTerm
             k += 1
             currentTerm = greater_term(rad, k)
