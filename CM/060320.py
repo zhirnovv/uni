@@ -3,48 +3,137 @@ import numpy
 import scipy
 import scipy.linalg
 
-A = numpy.array([[7, 3, -1, 2], [3, 8, 1, -4], [-1, 4, 1, -1], [2, -4, 6, 1]])
-# scipy implementation
-P, L, U = scipy.linalg.lu(A)
-
-
 def pivot_matrix(matrix):
-    print(matrix)
+    def swap_rows(Arr, src, dest):
+        if (dest != src):
+            Cp = numpy.copy(Arr)
+            Arr[src], Arr[dest] = Cp[dest], Cp[src]
+        return Arr
+
+    def swap_columns(Arr, src, dest):
+        if (dest != src):
+            Cp = numpy.copy(Arr)
+            Arr[::, src], Arr[::, dest] = Cp[::, dest], Cp[::, src]
+        return Arr
 
     matrix_length = len(matrix)
-    perm_matrix = [[float(i == j) for i in range(matrix_length)]
-                   for j in range(matrix_length)]
-
+    P = numpy.eye(len(matrix))
+    Q = numpy.eye(len(matrix))
+    
     # rearrange permutation matrix
     for j in range(matrix_length):
-        max_column_index = max(
-            range(j, matrix_length), key=lambda i: abs(matrix[i][j]))
-        if (max_column_index != j):
-            perm_matrix[j], perm_matrix[max_column_index] = perm_matrix[max_column_index], perm_matrix[j]
+        max_column_index = max(range(j, matrix_length), key=lambda i: abs(matrix[i][j]))
+        max_row_index = max(range(j, matrix_length), key=lambda i: abs(matrix[j][i]))
+        P = swap_rows(Q, j, max_row_index)
+        Q = swap_columns(P, j, max_column_index)
 
-    return perm_matrix
+    return P, Q
 
 
 def decompose_matrix(A):
     matrix_length = len(A)
 
-    L = [[0.0] * matrix_length for i in range(matrix_length)]
-    U = [[0.0] * matrix_length for i in range(matrix_length)]
+    L = numpy.zeros((matrix_length, matrix_length))
+    U = numpy.zeros((matrix_length, matrix_length))
 
-    P = pivot_matrix(A)
+    P, Q = pivot_matrix(A)
     PA = numpy.matmul(P, A)
-    for j in range(matrix_length):
-        L[j][j] = 1.0
+    PAQ = numpy.matmul(PA, Q)
+    # compose first row of U and first column of L:
+    for i in range(matrix_length):
+        for k in range(i, matrix_length):
+            U[i, k] = PAQ[i, k] - sum(L[i, j]*U[j, k] for j in range(i))
 
-        for i in range(j+1):
-            s1 = sum(U[k][j] * L[i][k] for k in range(i))
-            U[i][j] = PA[i][j] - s1
+        for k in range(i, matrix_length):
+            if (i == k):
+                L[i, i] = 1
+            else:
+                L[k, i] = (PAQ[k, i] - sum(L[k, j]*U[j, i] for j in range(i)))/U[i, i]
 
-        for i in range(j, matrix_length):
-            s2 = sum(U[k][j] * L[i][k] for k in range(j))
-            L[i][j] = (PA[i][j] - s2) / U[j][j]
-
-    return (P, L, U)
+    return (P, Q, L, U)
 
 
-pprint.pprint(decompose_matrix(A))
+# A is a square matrix, b is a list of right hand values (same length as A)
+
+
+def solve_linear_system(A, b):
+    def back_substitute(A, b, isUpper):
+        roots = [0.0 for i in range(0, len(b))]
+
+        if isUpper:
+            for i in reversed(range(0, len(b))):
+                roots[i] = (b[i]
+                            - sum(A[i, j]*roots[j] for j in reversed(range(i, len(b)))))/A[i, i]
+        else:
+            for i in range(0, len(b)):
+                roots[i] = (b[i]
+                            - sum(A[i, j]*roots[j] for j in range(0, i)))/A[i, i]
+
+        return roots
+
+    P, Q, L, U = decompose_matrix(A)
+    Pb = numpy.matmul(P, b)
+    y = back_substitute(L, Pb, False)
+    z = back_substitute(U, y, True)
+    x = numpy.matmul(Q, z)
+
+    return x
+
+def determinant(A):
+    _, _, _, U = decompose_matrix(A)
+    det = 1 
+
+    for i in range(len(A)):
+        det *= U[i, i]
+
+    return det
+
+def inverse_matrix(A):
+    invA = numpy.zeros((len(A), len(A)))
+
+    for i in range(len(A)):
+        e = [0] * len(A)
+        e[i] = 1
+        x = solve_linear_system(A, e)
+        for j in range(len(A)):
+            invA[j, i] = x[j]
+    
+    return invA
+
+def condition_number(A):
+    def matrix_norm(A):
+        return max(sum(abs(A.T[i])) for i in range(len(A)))
+
+    invA = inverse_matrix(A)
+
+    return matrix_norm(A) * matrix_norm(invA)
+
+n = 5
+A = numpy.array(numpy.random.randint(-20, 20, size=(n, n)), float)
+b = numpy.array(numpy.random.randint(-100, 100, n), float)
+print('Original array: ')
+print(A)
+print('Right hand value set: ')
+print(b)
+print('Decomposition: ')
+P, Q, L, U = decompose_matrix(A)
+print('P: ')
+print(P)
+print('Q: ')
+print(Q)
+print('L: ')
+print(L)
+print('U: ')
+print(U)
+print('PAQ: ')
+print(numpy.matmul(numpy.matmul(P, A), Q))
+print('LU: ')
+print(numpy.matmul(L, U))
+print('det(A): ')
+print(determinant(A))
+print('Ax=b, x=...')
+print(solve_linear_system(A, b))
+print('A^-1')
+print(inverse_matrix(A))
+print('Condition Number')
+print(condition_number(A))
