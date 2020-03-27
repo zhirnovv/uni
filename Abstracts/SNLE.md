@@ -23,8 +23,12 @@ $$
 ## Вопрос 2
 
 $$
-x^2 = a \equiv x^2-a = 0 \implies f(x) = x^2 - a = 0 \newline
-f'(x) = 2x \newline
+x^2 = a \equiv x^2-a = 0 \implies f(x) = x^2 - a = 0 
+$$
+$$
+f'(x) = 2x 
+$$
+$$
 x_{k+1} = x_{k} - \frac{x_{k}^2 - a}{2x_k}
 $$
 
