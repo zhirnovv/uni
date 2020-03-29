@@ -59,3 +59,6 @@ print(numpy.matmul(Q, R))
 
 print('Linear system solution via QR-decomposition')
 print(slae.qr_solve_linear_system(A, b))
+
+print(slae.jacobi_ls_solution(slae.dd_matrix(n), b, 1e-6))
+print(slae.seidel_ls_solution(slae.pd_matrix(n), b, 1e-6))

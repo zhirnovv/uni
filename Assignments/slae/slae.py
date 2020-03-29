@@ -181,3 +181,69 @@ def qr_solve_linear_system(A, b):
     Q_tb = numpy.matmul(Q_t, b)
     x = substitute(R, Q_tb, True)
     return x
+
+# k is the number of iterations
+
+
+def dd_matrix(n):
+    M = numpy.array(numpy.random.randint(-20, 20, size=(n, n)), float)
+    numpy.fill_diagonal(M, 0)
+    for i in range(n):
+        M[i, i] = numpy.random.randint(
+            0, 20) + sum(abs(M[i, j]) for j in range(n) if j != i)
+    return M
+
+
+def pd_matrix(n):
+    M = numpy.array(numpy.random.randint(-9, 9, size=(n, n)), float)
+    return numpy.matmul(M.transpose(), M)
+
+
+def apriori_iteration_count(C, D, eps):
+    C_norm = max(abs(C[i]).sum() for i in range(len(C)))
+    D_norm = D.max()
+    return (numpy.log(eps) + numpy.log(1-C_norm) - numpy.log(D_norm))/numpy.log(C_norm)
+
+
+def jacobi_ls_solution(A, b, eps):
+    print('DD Matrix: ')
+    print(A)
+    D_inv = numpy.zeros((len(A), len(A)))
+    numpy.fill_diagonal(D_inv, 1 / numpy.diagonal(A))
+    B = numpy.identity(len(A)) - numpy.matmul(D_inv, A)
+    g = numpy.matmul(D_inv, b)
+    k_apriori = apriori_iteration_count(B, g, eps)
+    print('k_apriori:')
+    print(k_apriori)
+    prev_x = numpy.zeros(len(A))
+    x = numpy.zeros(len(A))
+    numpy.fill_diagonal(A, 0)
+    k = 0
+    while(k < 1000):
+        for i in range(len(A)):
+            x[i] = D_inv[i, i] * (b[i] - numpy.dot(A[i], prev_x))
+        if abs(x - prev_x).max() < eps:
+            break
+        prev_x = x.copy()
+        k += 1
+    return x, k
+
+
+def seidel_ls_solution(A, b, eps):
+    print('PB Matrix: ')
+    print(A)
+    prev_x = numpy.zeros(len(A))
+    x = numpy.zeros(len(A))
+    k = 0
+    while(k < 1000):
+        x = numpy.copy(prev_x)
+        for i in range(len(A)):
+            before_sum = sum(A[i, j] * x[j] for j in range(i))
+            after_sum = sum(A[i, j] * x[j] for j in range(i+1, len(A)))
+            x[i] = b[i] - before_sum - after_sum
+            x[i] /= A[i, i]
+        if abs(x - prev_x).max() < eps:
+            break
+        prev_x = numpy.copy(x)
+        k += 1
+    return x, k
