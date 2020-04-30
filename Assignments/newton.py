@@ -34,7 +34,7 @@ from lib import newton
 print(newton.approximate_sae(functionDefinitions.functions, functionDefinitions.differentials, functionDefinitions.localizations, 'default'))
 print(newton.approximate_sae(functionDefinitions.functions, functionDefinitions.differentials, functionDefinitions.localizations, 'modified', 4)) # setting iteration threshold to 4 provides the same results as executing the default newton method
 
-# the following calls crash on the computation of the first function, no idea why, as the exponent does not depend on x_5 in f1
+# the following calls crash on the computation of the first function, most likely because the function does not converge.
 print(newton.approximate_sae(functionDefinitions.functions, functionDefinitions.differentials, functionDefinitions.modifiedLocalizations, 'modified', 6))
 
 print(newton.approximate_sae(functionDefinitions.functions, functionDefinitions.differentials, functionDefinitions.modifiedLocalizations, 'modified', 7))
