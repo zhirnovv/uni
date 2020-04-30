@@ -20,14 +20,16 @@ def swap_columns(Arr, src, dest):
 
 
 def matrix_decomposition(A):
-
     def pivot_matrix(Arr, k, i, j):
+        op_count = 0
         Arr = swap_rows(Arr, k, i)
         Arr = swap_columns(Arr, k, j)
+        op_count += 2
 
-        return Arr
+        return Arr, op_count
 
     matrix_length = len(A)
+    op_count = 0
 
     P = numpy.eye(matrix_length)
     Q = numpy.eye(matrix_length)
@@ -46,46 +48,68 @@ def matrix_decomposition(A):
 
         P = swap_rows(P, k, i[0])
         Q = swap_columns(Q, k, j[0])
-        L = pivot_matrix(L, k, i[0], j[0])
-        U = pivot_matrix(U, k, i[0], j[0])
+        op_count += 2
+        L, l_op_count = pivot_matrix(L, k, i[0], j[0])
+        U, u_op_count = pivot_matrix(U, k, i[0], j[0])
+
+        op_count += l_op_count + u_op_count
 
         M = numpy.eye(matrix_length)
         for l in range(k+1, matrix_length):
             L[l, k] = U[l, k] / U[k, k]
             M[l, k] = (-1) * L[l, k]
+            op_count += 2
+
         U = numpy.matmul(M, U)
+        # matrix multiplication requires n^3 operations
+        op_count += math.pow(matrix_length, 3)
 
     L = L + numpy.eye(matrix_length)
+    # matrix addition requires n^2 operations
+    op_count += math.pow(matrix_length, 2)
 
-    return P, Q, L, U
+    return P, Q, L, U, op_count
 
 
 def substitute(A, b, isUpper):
+    op_count = 0
     roots = numpy.zeros(len(b))
 
     if isUpper:
         for i in reversed(range(0, len(b))):
+            # number of comparisons to find the sum of len(b) - 1 + 1 elements of a matrix's row
+            op_count += len(b) - i + 1
+            op_count += 1  # consider division by A[i][i] as well
             if (A[i, i] != 0):
                 roots[i] = (b[i]
                             - sum(A[i, j]*roots[j] for j in reversed(range(i, len(b)))))/A[i, i]
     else:
         for i in range(0, len(b)):
+            # number of comparisons to find the sum of len(b) - 1 + 1 elements of a matrix's row
+            op_count += len(b) - i + 1
+            op_count += 1  # consider division by A[i][i] as well
             roots[i] = (b[i]
                         - sum(A[i, j]*roots[j] for j in range(0, i)))/A[i, i]
 
-    return roots
+    return roots, op_count
 
 
 def ls_solution(A, b):
-    P, Q, L, U = matrix_decomposition(A)
+    op_count = 0
+    P, Q, L, U, d_op_count = matrix_decomposition(A)
+    op_count += d_op_count
 
     Pb = numpy.matmul(P, b)
+    op_count += math.pow(len(A), 3) # matrix multiplication requires n^3 operations
 
-    y = substitute(L, Pb, False)
-    z = substitute(U, y, True)
+    y, y_op_count = substitute(L, Pb, False)
+    z, z_op_count = substitute(U, y, True)
+    op_count += y_op_count + z_op_count
+
     x = numpy.matmul(Q, z)
+    op_count += math.pow(len(A), 3) # matrix multiplication requires n^3 operations
 
-    return x
+    return x, op_count
 
 
 def determinant(A):

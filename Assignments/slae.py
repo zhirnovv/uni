@@ -1,6 +1,6 @@
 import numpy
 
-import slae
+from lib import slae
 
 numpy.set_printoptions(5)
 
