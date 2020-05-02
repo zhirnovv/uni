@@ -27,16 +27,20 @@ from lib import newton
 # fd = [[f1dx, f1dy], [f2dx, f2dy]]
 # print(newton.approximate_sae(f, fd, localizations, 'default'))
 
-
-# approximate_sae(functions: [callback], derivatives[callback][callback], localizations: [number], mode?: 'default' | 'modified', iterationsTilModified?: number)
+# default_sae_approximation(functions: [callback], derivatives[callback][callback], localizations: [number], iteration_threshold?: number)
 # operation count INCLUDES: matrix multiplication, matrix addition, operations with matrix elements and matrix transmutations (considered a single operation because of pointer changes), and divisions during reverse substitution.
 # operation count DOES NOT INCLUDE Jacobi matrix recomputations.
-print(newton.approximate_sae(functionDefinitions.functions, functionDefinitions.differentials, functionDefinitions.localizations, 'default'))
-print(newton.approximate_sae(functionDefinitions.functions, functionDefinitions.differentials, functionDefinitions.localizations, 'modified', 4)) # setting iteration threshold to 4 provides the same results as executing the default newton method
+print(newton.default_sae_approximation(functionDefinitions.functions, functionDefinitions.differentials, functionDefinitions.localizations))
+
+# modified_sae_approximation(functions: [callback], derivatives[callback][callback], localizations: [number], iteration_threshold?: number)
+# setting iteration threshold to 4 provides the same results as executing the default newton method
+print(newton.modified_sae_approximation(functionDefinitions.functions, functionDefinitions.differentials, functionDefinitions.localizations)) 
+
+# hybrid_sae_approximation(functions: [callback], derivatives[callback][callback], localizations: [number], iteration_multiplier?: number)
+print(newton.hybrid_sae_approximation(functionDefinitions.functions, functionDefinitions.differentials, functionDefinitions.localizations, 5))
 
 # the following calls crash on the computation of the first function, most likely because the function does not converge.
-print(newton.approximate_sae(functionDefinitions.functions, functionDefinitions.differentials, functionDefinitions.modifiedLocalizations, 'modified', 6))
+print(newton.modified_sae_approximation(functionDefinitions.functions, functionDefinitions.differentials, functionDefinitions.modifiedLocalizations, 3))
+# print(newton.approximate_sae(functionDefinitions.functions, functionDefinitions.differentials, functionDefinitions.modifiedLocalizations, 'modified', 7))
 
-print(newton.approximate_sae(functionDefinitions.functions, functionDefinitions.differentials, functionDefinitions.modifiedLocalizations, 'modified', 7))
-
-print(newton.approximate_sae(functionDefinitions.functions, functionDefinitions.differentials, functionDefinitions.modifiedLocalizations, 'modified', 8))
+# print(newton.approximate_sae(functionDefinitions.functions, functionDefinitions.differentials, functionDefinitions.modifiedLocalizations, 'modified', 8))
