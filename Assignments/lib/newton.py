@@ -3,6 +3,9 @@ import math
 from lib import slae
 from timeit import default_timer as timer
 
+class ImpreciseRootsError(Exception):
+    pass
+
 def approximate_function(function, derivative, localization, eps=1e-5):
     x_prev = localization
     x_next = localization-1
@@ -32,6 +35,12 @@ def get_coefficients(functions, roots):
 def get_delta(roots_next, roots_prev):
     return numpy.linalg.norm(roots_next - roots_prev)
 
+def verify_coefficients(functions, roots, eps):
+    coefficients = get_coefficients(functions, roots)
+    print('f(x) values for computed roots: ', coefficients)
+    for i in range(len(coefficients)):
+        if (abs(coefficients[i]) > eps):
+            raise ImpreciseRootsError
 
 def newton_default_iteration(functions, derivatives, roots):
     A = get_jacobi_matrix(derivatives, roots)
@@ -76,12 +85,16 @@ def default_sae_approximation(functions, derivatives, localizations, eps=1e-5):
             roots_next = roots_prev + temp_roots
 
             if (get_delta(roots_next, roots_prev) < eps):
+                verify_coefficients(functions, roots_next, eps)
                 end = timer()
                 return roots_next, iter_count, op_count, end-start
 
             roots_prev = numpy.copy(roots_next)
         
         return 'Iteration count exceeded 2000: breaking.'
+
+    except ImpreciseRootsError:
+        return 'One or more functions of a system are too great with computed roots'
 
     except OverflowError:
         return 'System does not converge'
@@ -118,12 +131,16 @@ def modified_sae_approximation(functions, derivatives, localizations, iteration_
 
             roots_next = roots_prev + temp_roots
             if (get_delta(roots_next, roots_prev) < eps):
+                verify_coefficients(functions, roots_next, eps)
                 end = timer()
                 return roots_next, iter_count, op_count, end - start
 
             roots_prev = numpy.copy(roots_next)
 
         return 'Iteration count exceeded 20000: breaking.'
+
+    except ImpreciseRootsError:
+        return 'One or more functions of a system are too great with computed roots'
 
     except OverflowError:
         return 'System does not converge'
@@ -160,6 +177,7 @@ def hybrid_sae_approximation(functions, derivatives, localizations, iteration_mu
             roots_next = roots_prev + temp_roots
 
             if (get_delta(roots_next, roots_prev) < eps):
+                verify_coefficients(functions, roots_next, eps)
                 end = timer()
                 return roots_next, iter_count, op_count, end - start
 
@@ -167,6 +185,9 @@ def hybrid_sae_approximation(functions, derivatives, localizations, iteration_mu
             iter_count += 1
 
         return 'Iteration count exceeded 20000: breaking.'
+
+    except ImpreciseRootsError:
+        return 'One or more functions of a system are too great with computed roots'
 
     except OverflowError:
         return 'System does not converge.'
