@@ -91,7 +91,8 @@ def gqf(f, a, b, moments):
     nodes = numpy.zeros(len(rhv) + 1)
     nodes[0] = 1
     temp, _ = slae.ls_solution(lhc, rhv * -1)
-    nodes[:0:-1] = temp
+    for i in range(1, n + 1):
+        nodes[i] = temp[n - i]
     roots = numpy.roots(nodes)
 
     root_matrix = numpy.array(
